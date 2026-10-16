@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>公众号排版</title>
+<meta name="description" content="粘贴 Markdown，一键排版为可直接粘贴到微信公众号编辑器的精致 HTML；18 套精调主题，覆盖杂志编辑部 / 经典复刻 / 新锐系列三组风格"/>
+<link rel="stylesheet" href="app.css"/>
+</head>
+<body>
+<script src="bridge.js"></script>
+<body>
+<body>
+<header class="topbar rise">
+  <div class="brand">
+    <div>
+      <h1>公众号排版</h1>
+      <p>Markdown → WeChat HTML Studio</p>
+    </div>
+  </div>
+  <div class="actions">
+    <button id="btnDownload" class="btn ghost">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>
+      下载 HTML
+    </button>
+    <button id="btnExportImage" class="btn ghost" type="button">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      导出长图
+    </button>
+    <button id="btnCopy" class="btn primary">
+      复制到公众号
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="workspace rise" style="animation-delay:.08s">
+  <section class="pane editor-pane">
+    <div class="pane-toolbar">
+      <span id="themePickerSlot" class="picker-slot"></span>
+      <span class="spacer"></span>
+      <button id="btnSample" class="btn tiny ghost">载入示例</button>
+      <button id="btnAuthorConfig" class="btn tiny ghost" type="button" aria-haspopup="dialog">署名配置</button>
+      <button id="btnArticleUrl" class="btn tiny ghost" type="button" aria-haspopup="dialog">文章抓取</button>
+      <span class="ai-slot" id="aiSlot">
+        <button id="btnOptimize" class="btn tiny ghost" type="button" aria-haspopup="true" aria-expanded="false">AI优化</button>
+      </span>
+      <button id="btnClear" class="btn tiny ghost">清空</button>
+    </div>
+    <textarea id="editor" spellcheck="false" placeholder="把文章 Markdown 粘进来，右侧立即预览…&#10;&#10;支持：# 标题 / ## 章节 / **加粗**(自动升级为关键词下划线) / ==高亮== / ++下划线++ / 代码块 / 图片 / 表格 / 引用"></textarea>
+  </section>
+
+  <section class="pane preview-pane">
+    <div class="pane-toolbar">
+      <strong>公众号预览</strong>
+      <span id="validBadge" class="badge">校验中…</span>
+      <span class="spacer"></span>
+      <div class="width-toggle" role="group" aria-label="预览设备宽度">
+        <button type="button" class="btn tiny ghost active" data-preview-width="fit" aria-pressed="true" title="最大 500 CSS px 的舒适阅读容器">适应</button>
+        <button type="button" class="btn tiny ghost" data-preview-width="375" aria-pressed="false" title="375 CSS px 小屏预览">小屏 375</button>
+        <button type="button" class="btn tiny ghost" data-preview-width="402" aria-pressed="false" title="402 CSS px 标准屏预览">标准 402</button>
+        <button type="button" class="btn tiny ghost" data-preview-width="440" aria-pressed="false" title="440 CSS px 大屏预览">大屏 440</button>
+      </div>
+    </div>
+    <div class="preview-wrap" id="previewWrap">
+      <iframe id="preview" title="排版预览"></iframe>
+    </div>
+    <div id="validPanel" class="valid-panel" hidden></div>
+  </section>
+</main>
+
+<footer class="foot rise" style="animation-delay:.2s">
+  基于 <a href="https://github.com/isjiamu/gzh-design-skill" target="_blank" rel="noopener">gzh-design-skill</a>
+  与 <a href="https://github.com/lanmengSakura/wechat-motion-layout-studio" target="_blank" rel="noopener">wechat-motion-layout-studio</a>
+  融合打造 · AGPL-3.0 开源
+</footer>
+
+<div id="authorModalMask" class="modal-mask" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="authorModalTitle">
+    <h2 id="authorModalTitle">署名配置</h2>
+    <p class="hint">
+      署名会出现在排版结果的封面与落款位置。保存后一直生效 —— 存在本机配置库
+      （~/.toolbox）里，关了程序重开还在，留空则不显示署名。
+    </p>
+    <div class="field">
+      <label for="authorInput">署名</label>
+      <input id="authorInput" type="text" maxlength="24" autocomplete="off" placeholder="你的名字（可留空）"/>
+    </div>
+    <div class="modal-actions">
+      <span class="grow"></span>
+      <button id="authorCancelBtn" class="btn tiny ghost" type="button">取消</button>
+      <button id="authorSaveBtn" class="btn tiny primary" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="urlModalMask" class="modal-mask" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="urlModalTitle">
+    <h2 id="urlModalTitle">文章抓取</h2>
+    <p class="hint" id="urlHint">
+      粘贴公众号文章链接，抓到的正文会自动转成 Markdown 填进下方编辑器。
+      浏览器受同源策略限制无法直连 mp.weixin.qq.com，请求会依次经 r.jina.ai / allorigins / corsproxy.io 等公共代理转发，
+      请勿填写私密或需要登录的链接。
+    </p>
+    <div class="field">
+      <label for="urlInput">文章 URL</label>
+      <input id="urlInput" type="text" spellcheck="false" autocomplete="off" placeholder="https://mp.weixin.qq.com/s/xxxxxxxxxxxx"/>
+      <span class="sub">公众号文章、普通网页都行</span>
+    </div>
+    <div id="urlModalStatus" class="modal-status" hidden></div>
+    <div class="modal-actions">
+      <button id="urlFetchBtn" class="btn tiny primary" type="button">抓取</button>
+      <span class="grow"></span>
+      <button id="urlCancelBtn" class="btn tiny ghost" type="button">取消</button>
+    </div>
+  </div>
+</div>
+
+<div id="aiModalMask" class="modal-mask" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="aiModalTitle">
+    <h2 id="aiModalTitle">配置模型</h2>
+    <p class="hint">接入任意 OpenAI 兼容接口（DeepSeek / 通义 / Kimi / 智谱 / SiliconFlow / 本地 Ollama 等）。配置只保存在本机浏览器里，不会上传到任何服务器。</p>
+    <div class="field">
+      <label for="aiName">展示名称</label>
+      <input id="aiName" type="text" maxlength="24" placeholder="例如：DeepSeek 快速版" autocomplete="off"/>
+    </div>
+    <div class="field">
+      <label for="aiBase">Base URL</label>
+      <input id="aiBase" type="text" spellcheck="false" autocomplete="off" placeholder="https://api.deepseek.com/v1"/>
+      <span class="sub">填到 /v1 或 /chat/completions 都行，程序会自动补全接口路径</span>
+    </div>
+    <div class="field">
+      <label for="aiKey">API Key</label>
+      <input id="aiKey" type="password" spellcheck="false" autocomplete="off" placeholder="sk-…（本地模型可留空）"/>
+    </div>
+    <div class="field">
+      <label for="aiModel">模型名</label>
+      <input id="aiModel" type="text" spellcheck="false" autocomplete="off" placeholder="deepseek-chat"/>
+    </div>
+    <div id="aiModalStatus" class="modal-status" hidden></div>
+    <div class="modal-actions">
+      <button id="aiTestBtn" class="btn tiny ghost" type="button">测试连接</button>
+      <span class="grow"></span>
+      <button id="aiCancelBtn" class="btn tiny ghost" type="button">取消</button>
+      <button id="aiSaveBtn" class="btn tiny primary" type="button">保存</button>
+    </div>
+  </div>
+</div>
+
+<div id="aiResultMask" class="modal-mask" hidden>
+  <div class="modal modal-wide" role="dialog" aria-modal="true" aria-labelledby="aiResultTitle">
+    <h2 id="aiResultTitle">AI 优化结果</h2>
+    <p class="hint" id="aiResultNote"></p>
+    <textarea id="aiResultText" class="result-box" spellcheck="false"></textarea>
+    <div class="modal-actions">
+      <span class="grow"></span>
+      <button id="aiResultCancelBtn" class="btn tiny ghost" type="button">取消</button>
+      <button id="aiApplyBtn" class="btn tiny primary" type="button">应用到编辑器</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+<script src="vendor/marked.min.js"></script>
+<script src="vendor/html2canvas.min.js"></script>
+<script src="js/themes.js"></script>
+<script src="js/converter.js"></script>
+<script src="js/validator.js"></script>
+
+<!-- 顺序有依赖：core 定义 window.GZH，其余各挂一个模块上去，app.js 最后启动 -->
+<script src="js/core.js"></script>
+<script src="js/prompts.js"></script>
+<script src="js/picker.js"></script>
+<script src="js/export.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/article.js"></script>
+<script src="js/author.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

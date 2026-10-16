@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<!--
+  新工具模板。把这个目录整体复制到 renderer/tools/<你的工具 id>/，然后：
+    1. 在 renderer/tools/registry.js 里加一条
+    2. 要主进程能力（发请求、读写文件…）就在 src/tools/<你的工具 id>/main.js
+       里加一个 methods，方法名和这里 invoke() 的第一个参数对上
+    3. npm run dist 重新打包
+
+  模板放在 docs/ 而不是 renderer/，是因为 renderer/ 整个会被打进 app.asar，
+  放开发用的东西等于白发给用户。详见 docs/adding-a-tool.md。
+
+  关于隔离：每个工具跑在独立 iframe 里，全局变量和 CSS 都不会和别的工具打架。
+  关于能力：iframe 拿不到 preload，主进程能力由外壳转发，接口是 window.toolbox。
+-->
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>新工具</title>
+<style>
+  :root {
+    --bg: #F4F6F8; --panel: #fff; --dark: #1D3045; --text: #33475C;
+    --sub: #64748B; --sub2: #93A5B8; --line: #E3E9EF; --ok: #0E7C5B; --bad: #C0392B;
+  }
+  html, body {
+    margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  .page { max-width: 860px; margin: 0 auto; padding: 32px 28px 48px; }
+  h1 { margin: 0 0 6px; font-size: 17px; font-weight: 700; color: var(--dark); }
+  .lead { margin: 0 0 22px; font-size: 12.5px; color: var(--sub); }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; }
+  .row { display: flex; gap: 8px; }
+  input[type=text] {
+    flex: 1; border: 1px solid var(--line); border-radius: 9px; padding: 9px 12px;
+    font: inherit; font-size: 13px; outline: none; background: #FDFDFE;
+  }
+  input[type=text]:focus { border-color: var(--dark); }
+  button {
+    border: 0; border-radius: 9px; padding: 9px 16px; font: inherit; font-size: 12.5px;
+    font-weight: 600; background: var(--dark); color: #fff; cursor: pointer;
+  }
+  button:disabled { opacity: 0.5; cursor: default; }
+  pre {
+    margin: 14px 0 0; padding: 12px; border-radius: 9px; background: #F7F9FB;
+    border: 1px solid var(--line); font-size: 12px; line-height: 1.7;
+    white-space: pre-wrap; word-break: break-all; max-height: 320px; overflow: auto;
+  }
+  .status { margin-top: 12px; font-size: 12.5px; }
+  .status.ok { color: var(--ok); }
+  .status.bad { color: var(--bad); }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>新工具</h1>
+  <p class="lead">把这个文件换成你自己的界面。下面是外壳桥的最小示例。</p>
+
+  <div class="card">
+    <div class="row">
+      <input id="url" type="text" spellcheck="false" placeholder="随便填点什么"/>
+      <button id="go" type="button">调用主进程</button>
+    </div>
+    <div id="status" class="status"></div>
+    <pre id="out" hidden></pre>
+  </div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var input = document.getElementById('url');
+  var go = document.getElementById('go');
+  var status = document.getElementById('status');
+  var out = document.getElementById('out');
+
+  /* 外壳里跑才有这个能力；单独用浏览器打开时是 undefined，所以要判空降级 */
+  var bridge = window.toolbox;
+
+  if (!bridge || typeof bridge.invoke !== 'function') {
+    status.textContent = '当前没有外壳能力（独立打开），主进程调用示例已禁用。';
+  }
+
+  go.addEventListener('click', function () {
+    if (!bridge || typeof bridge.invoke !== 'function') return;
+
+    go.disabled = true;
+    status.className = 'status';
+    status.textContent = '调用中…';
+    out.hidden = true;
+
+    /* 'echo' 要和 src/tools/<你的工具 id>/main.js 里 methods.echo 对上 */
+    bridge.invoke('echo', { text: input.value.trim() }).then(function (response) {
+      if (!response || response.ok !== true) {
+        throw new Error((response && response.error) || '调用失败');
+      }
+      status.className = 'status ok';
+      status.textContent = '✓ 主进程返回：';
+      out.hidden = false;
+      out.textContent = JSON.stringify(response.result, null, 2);
+    }).catch(function (error) {
+      status.className = 'status bad';
+      status.textContent = '✗ ' + (error && error.message ? error.message : '调用失败');
+    }).then(function () {
+      go.disabled = false;
+    });
+  });
+
+  /* 主进程存完文件后，外壳会转过来一条提示 */
+  if (bridge && typeof bridge.onToast === 'function') {
+    bridge.onToast(function (message) { status.textContent = message; });
+  }
+})();
+</script>
+</body>
+</html>

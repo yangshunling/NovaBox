@@ -1,0 +1,70 @@
+{
+  "name": "toolbox",
+  "version": "1.0.0",
+  "description": "匿名百宝箱 —— 可扩展的本地小工具集",
+  "main": "src/main.js",
+  "author": "Toolbox",
+  "license": "AGPL-3.0",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron .",
+    "dist": "electron-builder --win --x64",
+    "dist:dir": "electron-builder --win --x64 --dir",
+    "dist:portable": "electron-builder --win portable --x64",
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "icon": "python tools/make-icon.py"
+  },
+  "devDependencies": {
+    "electron": "^44.8.0",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.toolbox.desktop",
+    "productName": "Toolbox",
+    "copyright": "Copyright © 2026 Toolbox",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "renderer/**/*",
+      "package.json"
+    ],
+    "asar": true,
+    "compression": "maximum",
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Toolbox-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Toolbox-Portable-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "匿名百宝箱",
+      "uninstallDisplayName": "匿名百宝箱",
+      "installerLanguages": [
+        "zh_CN"
+      ],
+      "runAfterFinish": true,
+      "menuCategory": false,
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh"
+    }
+  }
+}

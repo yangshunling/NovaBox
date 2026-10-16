@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>匿名百宝箱</title>
+<style>
+  :root {
+    --bg: #F4F6F8;
+    --panel: #FFFFFF;
+    --rail: #FFFFFF;
+    --dark: #1D3045;
+    --dark-2: #16283A;
+    --text: #33475C;
+    --sub: #64748B;
+    --sub2: #93A5B8;
+    --line: #E3E9EF;
+    --accent: #2F6F8F;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Helvetica Neue", "Segoe UI", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app { display: flex; height: 100vh; }
+
+  /* ---------- 左侧导航 ---------- */
+
+  .rail {
+    width: 214px;
+    flex: 0 0 214px;
+    display: flex;
+    flex-direction: column;
+    background: var(--rail);
+    border-right: 1px solid var(--line);
+    user-select: none;
+  }
+
+  .rail-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px 16px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .rail-brand img { width: 34px; height: 34px; display: block; }
+  .rail-brand-text { min-width: 0; }
+  .rail-brand-text strong {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--dark);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .rail-brand-text span { font-size: 10px; color: var(--sub2); letter-spacing: 0.06em; }
+
+  .rail-tools { flex: 1; overflow-y: auto; padding: 12px 10px 16px; }
+
+  .rail-group { margin-bottom: 4px; }
+  .rail-group-title {
+    padding: 12px 8px 6px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--sub2);
+  }
+
+  .tool-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 9px 10px;
+    margin-bottom: 2px;
+    border: 0;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: 13px;
+    text-align: left;
+    cursor: pointer;
+    position: relative;
+    transition: background 0.18s var(--ease), color 0.18s var(--ease);
+  }
+  .tool-item:hover { background: #F1F4F8; }
+  .tool-item.active { background: var(--dark); color: #fff; }
+  .tool-item.active .tool-icon { background: rgba(255, 255, 255, 0.16); color: #fff; }
+
+  .tool-icon {
+    flex: 0 0 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 7px;
+    background: #EEF2F7;
+    color: var(--dark);
+    font-size: 11px;
+    font-weight: 700;
+    overflow: hidden;
+  }
+  .tool-icon svg { width: 15px; height: 15px; }
+
+  .tool-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .tool-badge {
+    font-size: 9px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 5px;
+    background: #E8F1F6;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+  }
+  .tool-item.active .tool-badge { background: rgba(255, 255, 255, 0.2); color: #fff; }
+
+  .rail-foot {
+    padding: 10px 16px 14px;
+    border-top: 1px solid var(--line);
+    font-size: 10px;
+    line-height: 1.7;
+    color: var(--sub2);
+  }
+  .rail-foot b { color: var(--sub); font-weight: 600; }
+
+  .rail-empty { padding: 18px 10px; font-size: 12px; line-height: 1.8; color: var(--sub2); }
+
+  /* ---------- 内容区 ---------- */
+
+  .stage { flex: 1; min-width: 0; position: relative; background: var(--bg); }
+  .frame {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .frame[hidden] { display: none; }
+
+  .stage-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    color: var(--sub2);
+    font-size: 13px;
+  }
+  .stage-empty[hidden] { display: none; }
+  .stage-empty code {
+    font-family: "SF Mono", Menlo, Consolas, monospace;
+    font-size: 12px;
+    background: #E9EEF3;
+    padding: 3px 8px;
+    border-radius: 6px;
+    color: var(--text);
+  }
+
+  /* ---------- 提示条 ---------- */
+
+  .toast {
+    position: fixed;
+    left: 50%;
+    bottom: 26px;
+    transform: translate(-50%, 12px);
+    max-width: 70vw;
+    padding: 9px 16px;
+    border-radius: 10px;
+    background: rgba(29, 48, 69, 0.94);
+    color: #fff;
+    font-size: 12.5px;
+    box-shadow: 0 10px 30px rgba(20, 32, 46, 0.28);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s var(--ease), transform 0.22s var(--ease);
+    z-index: 99;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="rail">
+    <div class="rail-brand">
+      <img id="railLogo" src="shell/logo.png" alt=""/>
+      <div class="rail-brand-text">
+        <strong>匿名百宝箱</strong>
+        <span id="railVersion">TOOLBOX</span>
+      </div>
+    </div>
+
+    <nav class="rail-tools" id="railTools"></nav>
+
+    <div class="rail-foot">
+      <div><b id="footTools">0</b> 个工具</div>
+      <div>Electron <span id="footElectron">–</span></div>
+    </div>
+  </aside>
+
+  <main class="stage" id="stage">
+    <div class="stage-empty" id="stageEmpty" hidden>
+      <div>还没有注册任何工具</div>
+      <div>在 <code>renderer/tools/registry.js</code> 里加一条</div>
+    </div>
+  </main>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="tools/registry.js"></script>
+<script src="shell/shell.js"></script>
+</body>
+</html>

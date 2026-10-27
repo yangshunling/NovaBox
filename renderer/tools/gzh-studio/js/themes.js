@@ -98,8 +98,10 @@
         continue;
       }
       if (tag === 'MARK') {
+        /* 荧光笔：用加粗下划色带模拟，不在文字上铺 background，
+           避免公众号深色模式 darkmode-no-gradient 提示与"文字带底色"观感 */
         html += restyleFirstLeaf(walkInline(n.childNodes, spec, state),
-          'background:linear-gradient(transparent 60%,' + spec.c.light + ' 60%);font-weight:600;');
+          'border-bottom:3px solid ' + spec.c.light + ';font-weight:600;');
         continue;
       }
       if (tag === 'U') {
@@ -155,7 +157,7 @@
       + (t.sub ? '<p style="margin:8px 0 0;font-size:15.5px;font-weight:700;color:' + spec.c.primary + ';line-height:1.5;">' + leaf(txt(t.sub)) + '</p>' : '')
       + (t.keywords.length ? '<p style="margin:14px 0 0;font-size:11px;color:' + spec.c.sub + ';letter-spacing:.5px;">' + leaf(txt(t.keywords.join(' · '))) + '</p>' : '')
       + '</section>'
-      + '<section style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(90deg,' + spec.c.primary + ',' + spec.c.deep + ');border-radius:0 0 13px 13px;padding:10px 16px;">'
+      + '<section style="display:flex;align-items:center;justify-content:space-between;background:' + spec.c.primary + ';border-radius:0 0 13px 13px;padding:10px 16px;">'
       + '<p style="margin:0;font-size:12.5px;font-weight:600;color:#FFFFFF;">' + barLeft + '</p>'
       + '<p style="margin:0;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.85);">' + leaf(t.parts > 0 ? (t.parts + ' PARTS') : spec.en) + '</p>'
       + '</section>'
@@ -472,7 +474,7 @@
     out = out.concat(bodyHtml);
     var sigAuthor = signature.author || opt.author || '';
     out.push(buildSignature(spec, { author: sigAuthor, intro: signature.intro || '' }));
-    return '<section style="font-family:-apple-system,BlinkMacSystemFont,\'Helvetica Neue\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;padding:4px 6px;">'
+    return '<section style="font-family:-apple-system,BlinkMacSystemFont,\'Helvetica Neue\',\'PingFang SC\',\'Microsoft YaHei\',sans-serif;padding:4px 6px;background:#FFFFFF;">'
       + out.join('\n') + '</section>';
   }
 

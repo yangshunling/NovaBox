@@ -49,6 +49,10 @@
     }
     if (halfCount > 0) warn('发现 ' + halfCount + ' 处中英文混排半角标点（如 ' + halfSamples.join('、') + '）');
 
+    /* 深色模式适配红线：公众号对文字背景里的渐变会报 darkmode-no-gradient，
+       微信在深色模式下会把渐变两端都压暗，导致文字看不清 */
+    if (/background[^:{]*:[^;}]*gradient/i.test(html)) warn('发现 background 渐变，公众号深色模式会提示 darkmode-no-gradient；建议改为纯色');
+
     /* 代码块禁 white-space:pre（会渲染出大缩进空行） */
     if (/white-space\s*:\s*pre(?:\s*;|\s*["'])/i.test(html)) warn('代码块使用了 white-space:pre，粘贴后可能出现大缩进');
 
